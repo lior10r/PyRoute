@@ -3,16 +3,15 @@
 set -e
 set -o pipefail
 
-DOCKER_DIR="/mnt/shared/Installs/docker-ce-18.06"
-
-# apt packages
-DEB_DOCKER="$DOCKER_DIR/docker-ce_18.06.1~ce~3-0~ubuntu_amd64.deb"
-DEB_SECCOMP="$DOCKER_DIR/libseccomp2_2.3.1-2.1ubuntu2~16.04.1_amd64.deb"
+installs="/mnt/shared/Installs"
+libsec="$installs/docker-ce-18.06/libseccomp2_2.3.1-2.1ubuntu2~16.04.1_amd64.deb"
+docker="$installs/docker-ce-18.06/docker-ce_18.06.1~ce~3-0~ubuntu_amd64.deb"
+docker_compose="$installs/docker-compose/docker-compose"
 
 # apt installs
 sudo apt install -y \
-    $DEB_DOCKER \
-    $DEB_SECCOMP \
+    $docker \
+    $libsec \
     grub \
     python
 
@@ -43,3 +42,7 @@ sudo setcap cap_net_raw+ep $(grub-mkrelpath $(which python))
 
 # Disable ip forwarding
 sudo sysctl net.ipv4.ip_forward=0
+
+# Install docker-compose
+sudo cp $docker_compose /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
