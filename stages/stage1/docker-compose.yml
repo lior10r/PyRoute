@@ -2,12 +2,12 @@ version: '2'
 
 services:
   client1:
-    image: pyroute
+    image: jaro:1700/pyroute
     stdin_open: true
     networks:
       - net1
   client2:
-    image: pyroute
+    image: jaro:1700/pyroute
     stdin_open: true
     networks:
       - net2
