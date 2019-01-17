@@ -15,6 +15,9 @@ sudo apt install -y \
     grub \
     python
 
+sudo pip install \
+    scapy
+
 # Add user to docker group
 sudo adduser $(whoami) docker
 sudo service docker restart
