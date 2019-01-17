@@ -67,7 +67,7 @@ Use `pyroute-connect <client>` to open the shell of a client. The client names f
 <a name="run-code_on_the_client"/>
 
 #### Run Code on the Client
-Some stages may require running your own code on the clients. For that purpose, your `src/` directory is accessible inside the clients under `/~/src/`. Notice that it is mounted with *read* and *write* permissions, so you can edit the code from the client as well.
+Some stages may require running your own code on the clients. For that purpose, your `src/` directory is accessible inside the clients under `/~/src/`. Notice that it is mounted with both *read* and *write* permissions, so you can edit the code from the client as well.
 
 <a name="example-usage"/>
 
