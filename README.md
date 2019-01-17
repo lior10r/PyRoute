@@ -18,6 +18,7 @@ The exercise is separated into stages. Each stage simulates a network of clients
   - [Start a Stage](#start-a-stage)
   - [Stop a Stage](#stop-a-stage)
   - [Connect to a Client](#connect-to-a-client)
+  - [Run Code on the Client](#run-code-on-the-client)
   - [Example Usage](#example-usage)
 - [Contribute](#contribute)
 
@@ -36,6 +37,8 @@ The following steps are performed to makes sure the clients are **not** connecte
 
 ## Run the Exercise
 In order to run the exercise, you first need to `source env.sh`. This will create various useful commands in your environment. This will only change your current terminal. You will have to use it in each shell separately.
+
+You should write your code under `src/`.
 
 <a name="start-a-stage"/>
 
@@ -60,6 +63,11 @@ Use `pyroute-stage-stop` to tear down the running stage. The command already kno
 
 #### Connect to a Client
 Use `pyroute-connect <client>` to open the shell of a client. The client names follow this pattern: *client\<n\>* (*client* and then a serial 1-based number). Since each client is a `docker` container, you can also see the available clients using `docker ps`.
+
+<a name="run-code_on_the_client"/>
+
+#### Run Code on the Client
+Some stages may require running your own code on the clients. For that purpose, your `src/` directory is accessible inside the clients under `/~/src/`. Notice that it is mounted with both *read* and *write* permissions, so you can edit the code from the client as well.
 
 <a name="example-usage"/>
 

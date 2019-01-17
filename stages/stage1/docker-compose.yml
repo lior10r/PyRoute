@@ -2,13 +2,15 @@ version: '2'
 
 services:
   client1:
-    image: jaro:1700/pyroute
-    stdin_open: true
+    extends:
+      file: docker-common.yml
+      service: client-base
     networks:
       - net1
   client2:
-    image: jaro:1700/pyroute
-    stdin_open: true
+    extends:
+      file: docker-common.yml
+      service: client-base
     networks:
       - net2
 
