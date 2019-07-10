@@ -13,10 +13,13 @@ sudo apt install -y \
     $docker \
     $libsec \
     grub \
-    python
+    python3.5
 
 sudo pip install \
     scapy
+
+# Allow python to send packets as non-sudo
+sudo setcap cap_net_admin,cap_net_raw+eip /usr/bin/python3.5
 
 # Add user to docker group
 sudo adduser $(whoami) docker

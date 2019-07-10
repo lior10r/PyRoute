@@ -3,3 +3,6 @@
 
 # Ignore stage file
 .stage
+
+# PyCharm
+.idea/
