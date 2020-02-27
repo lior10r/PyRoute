@@ -1,8 +1,6 @@
-#!/usr/bin/env sh
+#!/bin/bash
 
-# docker-compose must be run from the same directory as docker-compose.yml
-env=$(grub-mkrelpath $(dirname $0))
-
-pushd $env > /dev/null
 docker-compose down
-popd > /dev/null
+
+# Restore ICMP
+sudo sysctl net.ipv4.icmp_echo_ignore_all=0

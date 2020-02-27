@@ -4,6 +4,8 @@ RUN apt install -y \
     python \
     python-scapy \
     ipython \
-    tcpdump
+    tcpdump \
+    ssh \
+    iperf
 
 WORKDIR ~

@@ -1,8 +1,10 @@
-#!/usr/bin/env sh
+#!/bin/bash
 
-# docker-compose must be run from the same directory as docker-compose.yml
-env=$(grub-mkrelpath $(dirname $0))
-
-pushd $env > /dev/null
 docker-compose up -d
-popd > /dev/null
+
+# Disable ARP on ifaces
+sudo ifconfig net1 -arp
+sudo ifconfig net2 -arp
+
+# Disable ICMP responses
+sudo sysctl net.ipv4.icmp_echo_ignore_all=1

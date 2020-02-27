@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 # Paths
-export PYROUTE_ENV=$(grub-mkrelpath $(dirname $0))
+export PYROUTE_ENV=$(pwd)
 export PYROUTE_SRC_DIR=$PYROUTE_ENV/src
 export PYROUTE_STAGE_DIR=$PYROUTE_ENV/stages
 export PYROUTE_STAGE_FILE=$PYROUTE_ENV/.stage
@@ -9,17 +9,24 @@ export PYROUTE_STAGE_FILE=$PYROUTE_ENV/.stage
 
 function stage_down
 {
+    # docker-compose must be run from the same directory as docker-compose.yml
+    pushd $PYROUTE_STAGE_DIR/$1 > /dev/null
     $PYROUTE_STAGE_DIR/$1/down.sh
+    popd > /dev/null
 }
 
 function stage_up
 {
+    pushd $PYROUTE_STAGE_DIR/$1 > /dev/null
     $PYROUTE_STAGE_DIR/$1/up.sh
+    popd > /dev/null
 }
 
 function stage_connect
 {
+    pushd $PYROUTE_STAGE_DIR/$1 > /dev/null
     $PYROUTE_STAGE_DIR/$1/connect.sh $2
+    popd > /dev/null
 }
 
 function validate_stage

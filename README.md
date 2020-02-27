@@ -113,7 +113,7 @@ Each stage is a directory inside `stages/`. Each stage must create multiple scri
 All stages (right now, at least) work with `docker-compose` - A docker extension tool to create multi-container applications. The containers and networks are described in a file called `docker-compose.yml`.
 Each container uses the latest *pyroute* image. To change it, edit the `Dockerfile` and run:
 ```bash
-docker build . --tag="pyroute"
+docker build . --network host --tag="pyroute"
 docker image tag pyroute jaro:1700/pyroute
 docker image push jaro:1700/pyroute
 ```
