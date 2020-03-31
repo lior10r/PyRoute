@@ -28,7 +28,7 @@ class Layer(ABC):
 
     def __getattr__(self, key):
         # Prevent infinite loop on init :(
-        if "fields" not in self.__dict__.keys():
+        if "fields" not in self.__dict__:
             self.__dict__["fields"] = {}
 
         if key in self.__dict__:
@@ -131,14 +131,14 @@ class Layer(ABC):
 
     def connect_layer(self, other):
         for layer, field, val in self.SUB_LAYERS:
-            if type(other) == layer:
+            if isinstance(other, layer):
                 self.last_layer.fields[field].set(val)
                 self.last_layer = other
 
                 if not self.next_layer:
                     self.next_layer = other
                 else:
-                    self.next_layer.next_layer = other
+                    self.next_layer.connect_layer(other)
 
                 return self
 

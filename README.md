@@ -26,7 +26,7 @@ The exercise is separated into stages. Each stage simulates a network of clients
 <a name="installation"/>
 
 ## Installation
-Run `install.sh` to install the required dependencies. Before running, make sure you have access to `/mnt/shared/Installs`.
+Run `install.sh` to install the required dependencies.
 
 The following steps are performed to makes sure the clients are **not** connected by default:
 1. `docker` will be configured with `iptables: false` to prevent new iptables rules. To restore the default `docker` configuration remove that line from `/etc/docker/daemon.json` and restart the `docker` service.
@@ -114,8 +114,8 @@ All stages (right now, at least) work with `docker-compose` - A docker extension
 Each container uses the latest *pyroute* image. To change it, edit the `Dockerfile` and run:
 ```bash
 docker build . --network host --tag="pyroute"
-docker image tag pyroute jaro:1700/pyroute
-docker image push jaro:1700/pyroute
+# docker image tag pyroute jaro:1700/pyroute
+# docker image push jaro:1700/pyroute
 ```
 
 While the current stage is running, its name is saved in `.stage`. This file is used by all the `pyroute-*` commands. For example, `pyroute-connect` will call the `./stages/<current-stage>/connect.sh`.

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-docker-compose up -d
+docker-compose up -d || exit $?
 
 # Disable ARP on ifaces
 sudo ifconfig net1 -arp

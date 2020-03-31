@@ -72,7 +72,7 @@ class MacAddress(Field):
     FORMAT = "6s"
 
     def __init__(self, name="mac", default="00:00:00:00:00:00"):
-        Field.__init__(self, name, self.str2mac(default))
+        super().__init__(name, self.str2mac(default))
 
     def format_val(self):
         return self.mac2str(self.val)

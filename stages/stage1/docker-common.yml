@@ -2,7 +2,7 @@ version: '2'
 
 services:
   client-base:
-    image: jaro:1700/pyroute:latest
+    image: pyroute:latest
     stdin_open: true
     volumes:
       - $PYROUTE_SRC_DIR:/~/src
