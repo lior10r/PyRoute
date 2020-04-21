@@ -1,5 +1,5 @@
-from pascy.layer import Layer
-from pascy.fields import *
+from layer import Layer
+from fields import *
 
 MAC_BROADCAST = "FF:FF:FF:FF:FF:FF"
 
@@ -10,14 +10,34 @@ class ArpLayer(Layer):
 
     NAME = "ARP"
 
+    HEADERS = ["hardware_type",
+               "protocol_type",
+               "hardware_size",
+               "protocol_size",
+               "opcode",
+               "src_mac",
+               "src_ip",
+               "dst_mac",
+               "dst_ip"]
+
     @staticmethod
     def fields_info():
-        # TODO: Implement this :)
+        return [UnsignedShort("hardware_type", 0),
+                UnsignedShort("protocol_type", 0),
+                UnsignedByte("hardware_size", 0),
+                UnsignedByte("protocol_size", 0),
+                UnsignedShort("opcode", 0),
+                MacAddress("src_mac"),
+                IpAddress("src_ip"),
+                MacAddress("dst_mac"),
+                IpAddress("dst_ip")]
         pass
 
 
 class EthernetLayer(Layer):
     NAME = "Ethernet"
+
+    HEADERS = ["dst", "src", "ether_type"]
 
     SUB_LAYERS = [
         [ArpLayer, "ether_type", 0x806],

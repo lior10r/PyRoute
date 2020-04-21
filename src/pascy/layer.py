@@ -7,6 +7,8 @@ class Layer(ABC):
     NAME = ""
     SUB_LAYERS = []
 
+    HEADERS = []
+
     def __init__(self):
         self.next_layer = None
         self.last_layer = self
@@ -102,12 +104,27 @@ class Layer(ABC):
 
         return buffer
 
+    def set_field(self, index, field_name, buffer: bytes):
+        """
+        a function to set the field from the buffer
+        :param index: start index of the field in the buffer
+        :param field_name: field name to set
+        :param buffer: the bytes from the packet
+        :return: the index of the next field
+        """
+        # set the value at field from the buffer
+        self.fields[field_name].set(buffer[index: index + len(self.fields[field_name])])
+
+        # return the index + size of field = index of next field
+        return index + len(self.fields[field_name])
+
     def deserialize(self, buffer: bytes):
         """
         Deserialize this layer from a buffer
         """
-        # TODO: Implement this :)
-        pass
+        index = 0
+        for header in self.HEADERS:
+            index = self.set_field(index, header, buffer)
 
     def build(self) -> bytes:
         """
