@@ -127,19 +127,6 @@ class IpAddress(Field):
         return ipaddress.ip_address(ip).compressed
 
 
-class Payload(Field):
-
-    FORMAT = 's'
-
-    def __init__(self, name="payload", default: Any = 0):
-        super().__init__(name, default)
-
-
-
-
-
-
-
 
 
 
