@@ -96,7 +96,7 @@ class MacAddress(Field):
 
 class IpAddress(Field):
 
-    FORMAT = "4B"
+    FORMAT = "4s"
 
     def __init__(self, name="ip", default="0.0.0.0"):
         super().__init__(name, self.str2ip(default))

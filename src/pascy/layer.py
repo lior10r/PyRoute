@@ -112,8 +112,9 @@ class Layer(ABC):
         :param buffer: the bytes from the packet
         :return: the index of the next field
         """
+
         # set the value at field from the buffer
-        self.fields[field_name].set(buffer[index: index + len(self.fields[field_name])])
+        self.fields[field_name].deserialize(buffer[index:])
 
         # return the index + size of field = index of next field
         return index + len(self.fields[field_name])
