@@ -3,6 +3,7 @@ from functools import lru_cache
 from typing import Any
 import ipaddress
 
+
 class Endianity:
     BIG = ">"
     LITTLE = "<"
@@ -67,6 +68,11 @@ class ByteString(Field):
         self.FORMAT = '{}s'.format(size)
         super().__init__(name, default=default or b"\x00" * size)
 
+    def deserialize(self, buffer: bytes):
+        self.size = len(buffer)
+        self.FORMAT = '{}s'.format(self.size)
+        self.val = struct.unpack(self.ENDIANITY + self.FORMAT, buffer[:self.size])[0]
+
 
 class MacAddress(Field):
     FORMAT = "6s"
@@ -121,8 +127,12 @@ class IpAddress(Field):
         return ipaddress.ip_address(ip).compressed
 
 
+class Payload(Field):
 
+    FORMAT = 's'
 
+    def __init__(self, name="payload", default: Any = 0):
+        super().__init__(name, default)
 
 
 
