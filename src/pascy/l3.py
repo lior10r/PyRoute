@@ -1,6 +1,6 @@
 from layer import Layer
 from fields import *
-
+from l4 import IcmpLayer
 
 class ArpLayer(Layer):
     OP_WHO_HAS = 1
@@ -20,11 +20,11 @@ class ArpLayer(Layer):
 
     @staticmethod
     def fields_info():
-        return [UnsignedShort("hardware_type", 0),
-                UnsignedShort("protocol_type", 0),
-                UnsignedByte("hardware_size", 0),
-                UnsignedByte("protocol_size", 0),
-                UnsignedShort("opcode", 0),
+        return [UnsignedShort("hardware_type"),
+                UnsignedShort("protocol_type"),
+                UnsignedByte("hardware_size"),
+                UnsignedByte("protocol_size"),
+                UnsignedShort("opcode"),
                 MacAddress("src_mac"),
                 IpAddress("src_ip"),
                 MacAddress("dst_mac"),
@@ -34,6 +34,10 @@ class ArpLayer(Layer):
 class IpLayer(Layer):
 
     NAME = "IP"
+
+    SUB_LAYERS = [
+        [IcmpLayer, "protocol", 1]
+    ]
 
     HEADERS = ["Version_Header_length",
                "DSCP",

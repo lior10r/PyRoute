@@ -68,6 +68,11 @@ class ByteString(Field):
         self.FORMAT = '{}s'.format(size)
         super().__init__(name, default=default or b"\x00" * size)
 
+    def set(self, value):
+        self.size = len(value)
+        self.FORMAT = '{}s'.format(self.size)
+        self.val = value
+
     def deserialize(self, buffer: bytes):
         self.size = len(buffer)
         self.FORMAT = '{}s'.format(self.size)
