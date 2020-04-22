@@ -170,16 +170,23 @@ def calc_checksum(layer):
     a function to recalculate the ip header
     :param layer: layer to calculate checksum
     """
-    ip_header = b''
+    layer_content = b''
+
+    fields = layer.HEADERS[:]
+    try:
+        # the payload isn't calculated in the checksum
+        fields.remove("payload")
+    except:
+        pass
 
     # get all the header to bytes
-    for header in layer.HEADERS:
-        ip_header += layer.get_field(header)
+    for header in fields:
+        layer_content += layer.get_field(header)
 
     checksum = 0
     # sum all the layer as shorts
-    for i in range(0, len(ip_header), 2):
-        checksum += unpack(">H", ip_header[i:i+2])[0]
+    for i in range(0, len(layer_content), 2):
+        checksum += unpack(">H", layer_content[i:i+2])[0]
 
     # subtract the previous checksum
     checksum -= layer.checksum
@@ -192,9 +199,8 @@ def calc_checksum(layer):
         checksum = checksum & SHORT_MAX
         # add the carry to the checksum
         checksum += carry
-
     # the checksum is the complement of this result, and make it two byte size
-    layer.checksum = ~checksum & SHORT_MAX
+    layer.checksum = (~checksum) & SHORT_MAX
 
 
 def create_ip_send(packet):
