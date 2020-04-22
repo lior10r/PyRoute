@@ -128,19 +128,6 @@ def get_mac_router(ip):
             return mac
 
 
-def calc_checksum_ping(icmp):
-    """
-    a function to recalculate the checksum of pings
-    :param icmp: the icmp layer
-    """
-    # add the only value if changed, the type
-    icmp.checksum = icmp.checksum + (ICMP_PING_TYPE << BYTE_SIZE)
-
-    # handle overflow
-    if icmp.checksum > SHORT_MAX:
-        icmp.checksum = icmp.checksum - SHORT_MAX
-
-
 def handle_packet_to_me(packet):
     """
     a function that handles packets directed to the routed (for now only pings)
@@ -166,28 +153,28 @@ def handle_packet_to_me(packet):
         print("Handle PING packet")
         # set the packet's field to send back
         icmp.type = ICMP_PONG_TYPE
-        calc_checksum_ping(icmp)
+        calc_checksum(icmp)
 
         ether.src, ether.dst = ether.dst, ether.src
 
         ip.src_ip, ip.dst_ip = ip.dst_ip, ip.src_ip
 
-        calc_checksum_ip(ip)
+        calc_checksum(ip)
         # connect the icmp next to the ip
         ip / icmp
         return packet
 
 
-def calc_checksum_ip(ip):
+def calc_checksum(layer):
     """
     a function to recalculate the ip header
-    :param ip: ip layer
+    :param layer: layer to calculate checksum
     """
     ip_header = b''
 
     # get all the header to bytes
-    for header in ip.HEADERS:
-        ip_header += ip.get_field(header)
+    for header in layer.HEADERS:
+        ip_header += layer.get_field(header)
 
     checksum = 0
     # sum all the layer as shorts
@@ -195,7 +182,7 @@ def calc_checksum_ip(ip):
         checksum += unpack(">H", ip_header[i:i+2])[0]
 
     # subtract the previous checksum
-    checksum -= ip.checksum
+    checksum -= layer.checksum
 
     # if the checksum is bigger the short, loop and do the calculations until checksum is two byte size
     while checksum > SHORT_MAX:
@@ -207,7 +194,7 @@ def calc_checksum_ip(ip):
         checksum += carry
 
     # the checksum is the complement of this result, and make it two byte size
-    ip.checksum = ~checksum & SHORT_MAX
+    layer.checksum = ~checksum & SHORT_MAX
 
 
 def create_ip_send(packet):
@@ -228,7 +215,7 @@ def create_ip_send(packet):
     if dst_ip not in ARP_TABLE.keys():
         return
 
-    calc_checksum_ip(ip)
+    calc_checksum(ip)
 
     # set the MAC addresses
     ether.dst = ARP_TABLE[dst_ip]
