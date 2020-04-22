@@ -46,6 +46,16 @@ class Layer(ABC):
         else:
             self.__dict__[key] = val
 
+    def get_field(self, field_name) -> bytes:
+        """
+        a function to get value of field
+        :param field_name: name of field
+        :return: value of the field, None on failure
+        """
+        if field_name in self.fields.keys():
+            return self.fields[field_name].serialize()
+
+
     @staticmethod
     @abstractmethod
     def fields_info():

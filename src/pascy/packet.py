@@ -3,6 +3,7 @@ import l3
 import l4
 from ipaddress import ip_network, ip_address
 from netifaces import ifaddresses
+from struct import unpack
 
 ROUTER_NET1_MAC = ifaddresses("net1")[17][0]['addr']
 ROUTER_NET2_MAC = ifaddresses("net2")[17][0]['addr']
@@ -33,6 +34,7 @@ ICMP_PING_CODE = 0
 SHORT_MAX = 0xffff
 
 BYTE_SIZE = 8
+SHORT_SIZE = 16
 
 def get_protocol(ether):
     """
@@ -126,7 +128,7 @@ def get_mac_router(ip):
             return mac
 
 
-def calc_checksum(icmp):
+def calc_checksum_ping(icmp):
     """
     a function to recalculate the checksum of pings
     :param icmp: the icmp layer
@@ -164,15 +166,48 @@ def handle_packet_to_me(packet):
         print("Handle PING packet")
         # set the packet's field to send back
         icmp.type = ICMP_PONG_TYPE
-        calc_checksum(icmp)
+        calc_checksum_ping(icmp)
 
         ether.src, ether.dst = ether.dst, ether.src
 
         ip.src_ip, ip.dst_ip = ip.dst_ip, ip.src_ip
 
+        calc_checksum_ip(ip)
         # connect the icmp next to the ip
         ip / icmp
         return packet
+
+
+def calc_checksum_ip(ip):
+    """
+    a function to recalculate the ip header
+    :param ip: ip layer
+    """
+    ip_header = b''
+
+    # get all the header to bytes
+    for header in ip.HEADERS:
+        ip_header += ip.get_field(header)
+
+    checksum = 0
+    # sum all the layer as shorts
+    for i in range(0, len(ip_header), 2):
+        checksum += unpack(">H", ip_header[i:i+2])[0]
+
+    # subtract the previous checksum
+    checksum -= ip.checksum
+
+    # if the checksum is bigger the short, loop and do the calculations until checksum is two byte size
+    while checksum > SHORT_MAX:
+        # calc the carry, everything after the first two bytes
+        carry = checksum >> SHORT_SIZE
+        # get only the first two bytes
+        checksum = checksum & SHORT_MAX
+        # add the carry to the checksum
+        checksum += carry
+
+    # the checksum is the complement of this result, and make it two byte size
+    ip.checksum = ~checksum & SHORT_MAX
 
 
 def create_ip_send(packet):
@@ -192,6 +227,8 @@ def create_ip_send(packet):
     # if destination ip not in in the arp table, drop packet
     if dst_ip not in ARP_TABLE.keys():
         return
+
+    calc_checksum_ip(ip)
 
     # set the MAC addresses
     ether.dst = ARP_TABLE[dst_ip]
