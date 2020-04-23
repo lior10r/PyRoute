@@ -64,9 +64,9 @@ class UnsignedLong(Field):
 
 
 class ByteString(Field):
-    def __init__(self, name, size, default=None):
-        self.FORMAT = '{}s'.format(size)
-        super().__init__(name, default=default or b"\x00" * size)
+    def __init__(self, name, default=None):
+        self.FORMAT = '1s'
+        super().__init__(name, default)
 
     def set(self, value):
         self.size = len(value)
@@ -130,12 +130,3 @@ class IpAddress(Field):
     @lru_cache()
     def ip2str(ip):
         return ipaddress.ip_address(ip).compressed
-
-
-
-
-
-
-
-
-

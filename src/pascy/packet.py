@@ -4,12 +4,15 @@ import l4
 from ipaddress import ip_network, ip_address
 from netifaces import ifaddresses
 from struct import unpack
+from socket import AF_PACKET
+from functools import lru_cache
 
-ROUTER_NET1_MAC = ifaddresses("net1")[17][0]['addr']
-ROUTER_NET2_MAC = ifaddresses("net2")[17][0]['addr']
+
+ROUTER_NET1_MAC = ifaddresses("net1")[AF_PACKET.numerator][0]['addr']
+ROUTER_NET2_MAC = ifaddresses("net2")[AF_PACKET.numerator][0]['addr']
 
 # the network : mac address of router in that network
-ROUTER_TABLE = {"1.1.1.0/24": ROUTER_NET1_MAC, "2.2.2.0/24": ROUTER_NET2_MAC}
+ROUTER_TABLE = {ip_network("1.1.1.0/24"): ROUTER_NET1_MAC, ip_network("2.2.2.0/24"): ROUTER_NET2_MAC}
 
 # ip : mac
 ARP_TABLE = {"1.1.1.1": ROUTER_NET1_MAC, "2.2.2.1": ROUTER_NET2_MAC, "2.2.2.2": "02:42:02:02:02:02",
@@ -23,18 +26,11 @@ PROTOCOL_CLASS_INDEX = 0
 PROTOCOL_IDENTIFIER_NAME_INDEX = 1
 PROTOCOL_IDENTIFIER_VALUE_INDEX = 2
 
-# number of icmp protocol in ip packet
-ICMP_PROTOCOL = 1
-
-# icmp ping values
-ICMP_PING_TYPE = 8
-ICMP_PONG_TYPE = 0
-ICMP_PING_CODE = 0
-
 SHORT_MAX = 0xffff
 
 BYTE_SIZE = 8
 SHORT_SIZE = 16
+
 
 def get_protocol(ether):
     """
@@ -43,6 +39,7 @@ def get_protocol(ether):
     :return: IP or ARP
     """
     for sub in ether.SUB_LAYERS:
+        # check if ether type is matching to a type in SUB_LAYER, if yes return the type of the next layer
         if ether.ether_type == sub[PROTOCOL_IDENTIFIER_VALUE_INDEX]:
             return sub[PROTOCOL_CLASS_INDEX]
 
@@ -63,6 +60,7 @@ def parse_packet(data):
     # get the class type of layer 3 (arp / ip)
     layer3 = get_protocol(ether)
     if not layer3:
+        print("UNKNOWN PACKET RECEIVED")
         return
 
     # create an instance of that class type
@@ -89,7 +87,11 @@ def response_arp(packet):
     ether.dst = ether.src
 
     # set the source to my ip, according to the IP requested
-    ether.src = ARP_TABLE[l2.IpAddress.ip2str(arp.dst_ip)]
+    if l2.IpAddress.ip2str(arp.dst_ip) in ARP_TABLE:
+        ether.src = ARP_TABLE[l2.IpAddress.ip2str(arp.dst_ip)]
+    else:
+        # if no entry in the arp table, i can't reply on the message
+        return
 
     # switch the source ip and destination ip
     arp.src_ip, arp.dst_ip = arp.dst_ip, arp.src_ip
@@ -124,7 +126,7 @@ def get_mac_router(ip):
     :return: mac address
     """
     for network, mac in ROUTER_TABLE.items():
-        if ip in ip_network(network):
+        if ip in network:
             return mac
 
 
@@ -138,7 +140,7 @@ def handle_packet_to_me(packet):
     ip = packet.next_layer
 
     # if not icmp, I can't handle it
-    if ip.protocol != ICMP_PROTOCOL:
+    if ip.protocol != l3.IpLayer.ICMP_PROTOCOL:
         return
 
     # create the icmp layer from the ip payload
@@ -149,22 +151,32 @@ def handle_packet_to_me(packet):
     ip.payload = b''
 
     # if not ping, return None
-    if icmp.type == ICMP_PING_TYPE and icmp.code == ICMP_PING_CODE:
+    if icmp.type == l4.IcmpLayer.ICMP_PING_TYPE and icmp.code == l4.IcmpLayer.ICMP_PING_CODE:
         print("Handle PING packet")
         # set the packet's field to send back
-        icmp.type = ICMP_PONG_TYPE
-        calc_checksum(icmp)
+        icmp.type = l4.IcmpLayer.ICMP_PONG_TYPE
+        icmp.checksum = calc_checksum(icmp)
 
-        ether.src, ether.dst = ether.dst, ether.src
-
+        # switch the ip dst and src
         ip.src_ip, ip.dst_ip = ip.dst_ip, ip.src_ip
 
-        calc_checksum(ip)
+        # set the mac src to me
+        ether.src = get_mac_router(ip_address(ip.src_ip))
+
+        # set the mac dst
+        if l2.IpAddress.ip2str(ip.dst_ip) in ARP_TABLE:
+            ether.dst = ARP_TABLE[l2.IpAddress.ip2str(ip.dst_ip)]
+        else:
+            print("RECEIVED PACKET FROM AN UNKNOWN PC")
+            return
+
+        ip.checksum = calc_checksum(ip)
         # connect the icmp next to the ip
         ip / icmp
         return packet
 
 
+@lru_cache()
 def calc_checksum(layer):
     """
     a function to recalculate the ip header
@@ -172,7 +184,7 @@ def calc_checksum(layer):
     """
     layer_content = b''
 
-    fields = layer.HEADERS[:]
+    fields = layer.fields.keys()
     try:
         # the payload isn't calculated in the checksum
         fields.remove("payload")
@@ -200,7 +212,7 @@ def calc_checksum(layer):
         # add the carry to the checksum
         checksum += carry
     # the checksum is the complement of this result, and make it two byte size
-    layer.checksum = (~checksum) & SHORT_MAX
+    return (~checksum) & SHORT_MAX
 
 
 def create_ip_send(packet):
@@ -220,8 +232,6 @@ def create_ip_send(packet):
     # if destination ip not in in the arp table, drop packet
     if dst_ip not in ARP_TABLE.keys():
         return
-
-    calc_checksum(ip)
 
     # set the MAC addresses
     ether.dst = ARP_TABLE[dst_ip]

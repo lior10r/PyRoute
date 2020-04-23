@@ -3,15 +3,12 @@ from fields import *
 
 
 class IcmpLayer(Layer):
+    # icmp ping values
+    ICMP_PING_TYPE = 8
+    ICMP_PONG_TYPE = 0
+    ICMP_PING_CODE = 0
 
     NAME = "ICMP"
-
-    HEADERS = ["type",
-               "code",
-               "checksum",
-               "id",
-               "seq_num",
-               "payload"]
 
     @staticmethod
     def fields_info():
@@ -20,4 +17,4 @@ class IcmpLayer(Layer):
                 UnsignedShort("checksum"),
                 UnsignedShort("id"),
                 UnsignedShort("seq_num"),
-                ByteString("payload", 0)]
+                ByteString("payload")]

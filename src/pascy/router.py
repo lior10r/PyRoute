@@ -3,7 +3,9 @@ import select
 import packet
 from ipaddress import ip_address, ip_network
 
-INTERFACES = {"1.1.1.0/24": "net1", "2.2.2.0/24": "net2"}
+INTERFACES = {"net1": ip_network("1.1.1.0/24"), "net2": ip_network("2.2.2.0/24")}
+
+MTU = 1500
 
 
 def create_socket(interface):
@@ -24,7 +26,7 @@ def establish_connection():
     """
     socket_dict = {}
 
-    for interface in INTERFACES.values():
+    for interface in INTERFACES.keys():
         socket_dict[interface] = create_socket(interface)
     return socket_dict
 
@@ -34,18 +36,16 @@ def handle_connections():
     print("established conn")
 
     inputs = list(socket_dict.values())
-    outputs = []
-    message_queues = {}
 
     while inputs:
-        r_list, w_list, e_list = select.select(inputs, outputs, message_queues)
+        r_list, _, _ = select.select(inputs, [], [])
 
         for sock in r_list:
-            data = sock.recv(1024)
+            data = sock.recv(MTU)
             handle_received(socket_dict, data)
 
 
-def send_interface(send_packet):
+def get_send_interface_name(send_packet):
     """
     a function that gets a packet and returns the interface it should be sent in
     :param send_packet: packet to send
@@ -53,9 +53,9 @@ def send_interface(send_packet):
     """
     ip = ip_address(send_packet.next_layer.dst_ip)
 
-    for network, interface in INTERFACES.items():
+    for interface, network in INTERFACES.items():
         # if ip in the network of the interface, return interface name
-        if ip in ip_network(network):
+        if ip in network:
             return interface
 
 
@@ -74,6 +74,6 @@ def handle_received(socket_dict, data):
     send_packet = packet.handle_packet(received)
     if send_packet:
         # if the packet is valid, get the interface to send to and send the packet
-        interface = send_interface(send_packet)
-        socket_dict[interface].sendall(send_packet.build())
+        interface = get_send_interface_name(send_packet)
+        socket_dict[interface].send(send_packet.build())
 

@@ -2,21 +2,12 @@ from layer import Layer
 from fields import *
 from l4 import IcmpLayer
 
+
 class ArpLayer(Layer):
     OP_WHO_HAS = 1
     OP_IS_AT = 2
 
     NAME = "ARP"
-
-    HEADERS = ["hardware_type",
-               "protocol_type",
-               "hardware_size",
-               "protocol_size",
-               "opcode",
-               "src_mac",
-               "src_ip",
-               "dst_mac",
-               "dst_ip"]
 
     @staticmethod
     def fields_info():
@@ -32,29 +23,19 @@ class ArpLayer(Layer):
 
 
 class IpLayer(Layer):
+    # number of icmp protocol in ip packet
+    ICMP_PROTOCOL = 1
 
     NAME = "IP"
 
     SUB_LAYERS = [
-        [IcmpLayer, "protocol", 1]
+        [IcmpLayer, "protocol", 1],
     ]
-
-    HEADERS = ["Version_Header_length",
-               "DSCP",
-               "total_length",
-               "id",
-               "flags",
-               "ttl",
-               "protocol",
-               "checksum",
-               "src_ip",
-               "dst_ip",
-               "payload"]
 
     @staticmethod
     def fields_info():
-        return [UnsignedByte("Version_Header_length"),
-                UnsignedByte("DSCP"),
+        return [UnsignedByte("version_Header_length"),
+                UnsignedByte("dscp"),
                 UnsignedShort("total_length"),
                 UnsignedShort("id"),
                 UnsignedShort("flags"),
@@ -63,4 +44,4 @@ class IpLayer(Layer):
                 UnsignedShort("checksum"),
                 IpAddress("src_ip"),
                 IpAddress("dst_ip"),
-                ByteString("payload", 0)]
+                ByteString("payload")]

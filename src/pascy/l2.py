@@ -8,11 +8,9 @@ MAC_BROADCAST = "FF:FF:FF:FF:FF:FF"
 class EthernetLayer(Layer):
     NAME = "Ethernet"
 
-    HEADERS = ["dst", "src", "ether_type"]
-
     SUB_LAYERS = [
         [ArpLayer, "ether_type", 0x806],
-        [IpLayer, "ether_type", 0x800]
+        [IpLayer, "ether_type", 0x800],
     ]
 
     @staticmethod

@@ -7,8 +7,6 @@ class Layer(ABC):
     NAME = ""
     SUB_LAYERS = []
 
-    HEADERS = []
-
     def __init__(self):
         self.next_layer = None
         self.last_layer = self
@@ -134,7 +132,7 @@ class Layer(ABC):
         Deserialize this layer from a buffer
         """
         index = 0
-        for header in self.HEADERS:
+        for header in self.fields.keys():
             index = self.set_field(index, header, buffer)
 
     def build(self) -> bytes:
