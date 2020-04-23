@@ -124,9 +124,9 @@ class IpAddress(Field):
     @staticmethod
     @lru_cache()
     def str2ip(ip):
-        return ipaddress.ip_address(ip).packed
+        return ipaddress.IPv4Address(ip).packed
 
     @staticmethod
     @lru_cache()
     def ip2str(ip):
-        return ipaddress.ip_address(ip).compressed
+        return ipaddress.IPv4Address(ip).compressed
