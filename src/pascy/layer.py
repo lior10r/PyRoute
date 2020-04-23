@@ -53,6 +53,14 @@ class Layer(ABC):
         if field_name in self.fields.keys():
             return self.fields[field_name].serialize()
 
+    def set_field_by_value(self, field_name, value):
+        """
+        a function to set value of field
+        :param field_name: name of field
+        :param value: value to set
+        """
+        if field_name in self.fields.keys():
+            self.fields[field_name].set(value.get())
 
     @staticmethod
     @abstractmethod

@@ -6,7 +6,7 @@ from netifaces import ifaddresses
 from struct import unpack
 from socket import AF_PACKET
 from functools import lru_cache
-
+import copy
 
 ROUTER_NET1_MAC = ifaddresses("net1")[AF_PACKET.numerator][0]['addr']
 ROUTER_NET2_MAC = ifaddresses("net2")[AF_PACKET.numerator][0]['addr']
@@ -74,27 +74,54 @@ def parse_packet(data):
     return packet
 
 
+def copy_packet(received, new):
+    """
+    a function to copy a packet
+    :param received: the received packet
+    :param new: the new packet
+    :return: True on success, False on failure
+    """
+    # if the layer are not the same, an error occurred
+    if not isinstance(new, type(received)):
+        return False
+
+    # copy the fields to the new packet
+    for name, val in received.fields.items():
+        new.set_field_by_value(name, val)
+
+    # do this until no more layers
+    if received.next_layer:
+        copy_packet(received.next_layer, new.next_layer)
+    return True
+
+
 def response_arp(packet):
     """
     create the response packet
     :param packet: the received packet
     :return: the packet to send
     """
-    ether = packet
-    arp = packet.next_layer
+    ether = l2.EthernetLayer() / l3.ArpLayer()
+
+    # copy the received packet to my packet
+    if not copy_packet(packet, ether):
+        return
+
+    arp = ether.next_layer
 
     # change the MAC addresses of Ethernet layer
-    ether.dst = ether.src
+    ether.dst = packet.src
 
     # set the source to my ip, according to the IP requested
     if l2.IpAddress.ip2str(arp.dst_ip) in ARP_TABLE:
-        ether.src = ARP_TABLE[l2.IpAddress.ip2str(arp.dst_ip)]
+        ether.src = ARP_TABLE[l2.IpAddress.ip2str(packet.next_layer.dst_ip)]
     else:
         # if no entry in the arp table, i can't reply on the message
         return
 
-    # switch the source ip and destination ip
-    arp.src_ip, arp.dst_ip = arp.dst_ip, arp.src_ip
+    # switch the source ip and destination ip (packet.next_layer is the arp layer)
+    arp.src_ip = packet.next_layer.dst_ip
+    arp.dst_ip = packet.next_layer.src_ip
 
     # handle the MAC addresses of the ARP protocol
     arp.src_mac, arp.dst_mac = ether.src, ether.dst
